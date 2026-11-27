@@ -1,23 +1,117 @@
-☰
-SSTUDIOBROWSER IDE
-NewRenameDuplicateDelete
-↑ ↓ ⚙
-EXPLORER
-＋▱
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#111318">
+  <title>Studio — Browser IDE</title>
+  <link rel="stylesheet" href="./css/theme.css">
+  <link rel="stylesheet" href="./css/workspace.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/elegant.min.css">
+</head>
+<body>
+  <header class="topbar">
+    <button class="icon-btn mobile-only" id="sidebarToggle" aria-label="Toggle files">☰</button>
+    <div class="brand"><span class="brand-mark">S</span><span>STUDIO</span><span class="brand-sub">BROWSER IDE</span></div>
+    <div class="project-control">
+      <select id="projectSelect" aria-label="Current project"></select>
+      <button class="text-btn" id="newProject">New</button><button class="text-btn" id="renameProject">Rename</button><button class="text-btn" id="duplicateProject">Duplicate</button><button class="text-btn" id="deleteProject">Delete</button>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" id="importBtn" title="Import files">↑</button>
+      <button class="icon-btn" id="exportBtn" title="Export ZIP">↓</button>
+      <button class="icon-btn" id="settingsBtn" title="Editor settings">⚙</button>
+    </div>
+  </header>
 
+  <main class="workspace" id="workspace">
+    <aside class="sidebar" id="sidebar">
+      <div class="panel-heading"><span>EXPLORER</span><div><button class="mini-btn" id="newFile" title="New file">＋</button><button class="mini-btn" id="newFolder" title="New folder">▱</button></div></div>
+      <div class="project-meta" id="projectMeta"></div>
+      <nav class="file-tree" id="fileTree" aria-label="Project files"></nav>
+      <div class="sidebar-footer"><span class="status-dot"></span> Local workspace</div>
+    </aside>
 
-Local workspace
+    <section class="main-area">
+      <div class="tabbar" id="tabbar"></div>
+      <div class="view-toolbar">
+        <div class="view-modes">
+          <button data-mode="editor" class="mode-btn">Editor</button>
+          <button data-mode="split" class="mode-btn active">Split</button>
+          <button data-mode="preview" class="mode-btn">Preview</button>
+        </div>
+        <div class="preview-tools">
+          <select id="viewportSelect" aria-label="Preview viewport">
+            <option value="100%">Desktop</option><option value="768px">Tablet</option><option value="390px">Mobile</option>
+          </select>
+          <button class="icon-btn small" id="refreshPreview" title="Refresh preview">↻</button>
+        </div>
+      </div>
 
-Editor Split Preview
-            DesktopTabletMobile
-           ↻
+      <div class="workbench" id="workbench">
+        <section class="editor-pane" id="editorPane">
+          <div class="editor-host" id="editorHost"><textarea id="codeEditor" aria-label="Code editor"></textarea></div>
+          <div class="quickbar" id="quickbar">
+            <button data-insert="&lt;">&lt;</button><button data-insert="&gt;">&gt;</button>
+            <button data-insert="{"> { </button><button data-insert="}"> } </button>
+            <button data-insert="(">(</button><button data-insert=")">)</button>
+            <button data-insert="[">[</button><button data-insert="]">]</button>
+            <button data-insert=";">;</button><button data-insert=" =&gt; ">⇒</button>
+            <button data-insert="&quot;">"</button><button data-insert="'">'</button><button data-insert="  ">Tab</button>
+            <span class="quick-divider"></span>
+            <select id="snippetSelect" aria-label="Insert snippet">
+              <option value="">Snippets…</option><option value="html">HTML5</option>
+              <option value="log">console.log</option><option value="media">Media query</option><option value="fetch">Fetch API</option>
+            </select>
+          </div>
+        </section>
+        <div class="split-handle" id="splitHandle"></div>
+        <section class="preview-pane" id="previewPane">
+          <div class="preview-frame-wrap" id="previewFrameWrap"><iframe id="previewFrame" title="Live preview" sandbox="allow-scripts allow-forms allow-modals" referrerpolicy="no-referrer"></iframe></div>
+          <section class="console-panel" id="consolePanel">
+            <div class="console-heading"><span>CONSOLE</span><button class="mini-btn" id="clearConsole">Clear</button></div>
+            <div class="console-output" id="consoleOutput"></div>
+          </section>
+        </section>
+      </div>
+      <footer class="statusbar"><span id="fileStatus">No file open</span><span id="saveStatus">All changes saved</span><span id="cursorStatus">Ln 1, Col 1</span></footer>
+    </section>
+  </main>
 
-<> { } () [] ;⇒ "'Tab
-              Snippets…HTML5
-              console.logMedia queryFetch API
-            
-
-
-CONSOLEClear
-
-No file openAll changes savedLn 1, Col 1
+  <dialog id="simpleDialog">
+    <form method="dialog" id="dialogForm">
+      <h2 id="dialogTitle">Create</h2><p id="dialogHint"></p>
+      <input id="dialogInput" autocomplete="off" required>
+      <div class="dialog-actions"><button class="text-btn" value="cancel">Cancel</button><button class="primary-btn" id="dialogConfirm" value="ok">Continue</button></div>
+    </form>
+  </dialog>
+  <dialog id="settingsDialog">
+    <form method="dialog">
+      <h2>Editor settings</h2>
+      <label>Theme <select id="editorTheme"><option value="material-darker">Minimal Dark</option><option value="default">Minimal Light</option></select></label>
+      <label>Font size <select id="fontSize"><option>12</option><option>13</option><option>14</option><option selected>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option></select></label>
+      <div class="dialog-actions"><button class="primary-btn" value="ok">Done</button></div>
+    </form>
+  </dialog>
+  <input type="file" id="fileInput" multiple hidden>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/brace-fold.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/xml-fold.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/search.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
